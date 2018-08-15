@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Movidius Neural Compute Toolkit installation script.
-# 
+#
 # The file ncsdk.conf contains the user configuration options and these
 # override the defaults set in this script.  The function print_ncsdk_config()
 # is called if ${VERBOSE} = "yes" to print user config variables and documents what they do.
@@ -9,7 +9,7 @@
 # Function main at the bottom calls all of the other functions required to install.
 #
 # Function check_prerequisites lists the prerequisites required to install
-#  
+#
 # Please provide feedback in our support forum if you encountered difficulties.
 ################################################################################
 # read in functions shared by installer and uninstaller
@@ -20,7 +20,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 function check_supported_os()
 {
     ### Checking OS and version...
-    # install package lsb-release if application lsb_release isn't installed 
+    # install package lsb-release if application lsb_release isn't installed
 
     RC=0
     CHECKDNF=0
@@ -31,14 +31,14 @@ function check_supported_os()
     else
         [ $RC -ne 0 ] && exec_and_search_errors "$SUDO_PREFIX apt-get $APT_QUIET install -y lsb-release"
     fi
-    
+
     DISTRO="$(lsb_release -i 2>/dev/null | cut -f 2)"
     VERSION="$(lsb_release -r 2>/dev/null | awk '{ print $2 }' | sed 's/[.]//')"
     OS_DISTRO="${DISTRO:-INVALID}"
     OS_VERSION="${VERSION:-255}"
     if [ "${OS_DISTRO,,}" = "ubuntu" ] && [ ${OS_VERSION} = 1604 ]; then
         [ "${VERBOSE}" = "yes" ] && echo "Installing on Ubuntu 16.04"
-    elif [ "${OS_DISTRO,,}" = "fedora" ] || [ "${OS_DISTRO,,}" = "Fedora" ]; then #CHANGED
+    elif [ "${OS_DISTRO,,}" = "fedora" ]; then
         [ "${VERBOSE}" = "yes" ] && echo "Installing on Fedora" #CHANGED
     elif [ "${OS_DISTRO,,}" = "raspbian" ] && [ ${OS_VERSION} -ge 91 ]; then
         [ "${VERBOSE}" = "yes" ] && echo "Installing on Raspbian Stretch"
@@ -68,7 +68,7 @@ function check_prerequisites()
             exit 1
         fi
     done
-    
+
     check_supported_os
 }
 
@@ -82,7 +82,7 @@ function create_install_logfile()
     ${SUDO_PREFIX} mkdir -p $DIR/setup-logs
     ${SUDO_PREFIX} chown $(id -un):$(id -gn) $DIR/setup-logs
     echo "Saving installation log file in $DIR/setup-logs/$LOGFILE"
-    exec &> >(tee -a "$DIR/setup-logs/$LOGFILE")    
+    exec &> >(tee -a "$DIR/setup-logs/$LOGFILE")
 }
 
 
@@ -107,7 +107,7 @@ function print_ncsdk_config()
     echo "CAFFE_FLAVOR=${CAFFE_FLAVOR}"
     echo "CAFFE_USE_CUDA=${CAFFE_USE_CUDA}"
     echo "INSTALL_TENSORFLOW=${INSTALL_TENSORFLOW}"
-    echo "INSTALL_TOOLKIT=${INSTALL_TOOLKIT}"    
+    echo "INSTALL_TOOLKIT=${INSTALL_TOOLKIT}"
     echo "PIP_SYSTEM_INSTALL=${PIP_SYSTEM_INSTALL}"
     echo "VERBOSE=${VERBOSE}"
     echo "USE_VIRTUALENV=${USE_VIRTUALENV}"
@@ -116,19 +116,19 @@ function print_ncsdk_config()
 }
 
 
-# init_installer - 
+# init_installer -
 #   sets up installer including error handling, verbosity level, sudo privileges,
 #   reads ncsdk.conf via read_ncsdk_config function, creates dirs for installation,
 #   sets global variables CONF_FILE, DIR and NCSDK_VERSION.
 function init_installer()
 {
-    # trap errors (function is in install-utilities.sh) 
+    # trap errors (function is in install-utilities.sh)
     set_error_handling
 
-    ### get constants (function is in install-utilities.sh) 
+    ### get constants (function is in install-utilities.sh)
     initialize_constants
-    
-    ### check if file exist 
+
+    ### check if file exist
     VERSION_FILE=version.txt
     if [ ! -f ${VERSION_FILE} ] ; then
         echo -e "${RED}Couldn't find file ${VERSION_FILE}. Error on line $LINENO  Will exit${NC}"
@@ -137,8 +137,8 @@ function init_installer()
     NCSDK_VERSION=`cat ${VERSION_FILE}`
     echo "Installer NCSDK version: $NCSDK_VERSION"
     echo ""
-    
-    ### read config file (function is in install-utilities.sh) 
+
+    ### read config file (function is in install-utilities.sh)
     read_ncsdk_config
 
     ### Ask for sudo priviledges (function is in install-utilities.sh)
@@ -158,7 +158,7 @@ function init_installer()
         STDOUT_QUIET=
     fi
 
-    # Install location for sdk and API 
+    # Install location for sdk and API
     DIR=${INSTALL_DIR}/NCSDK
     SDK_DIR=$DIR/ncsdk-$(eval uname -m)
     if [ -d /usr/local/lib ]; then
@@ -179,13 +179,13 @@ function init_installer()
 # make_installer_dirs - creates directories that the install uses
 function make_installer_dirs()
 {
-    ### Create Required installation dirs.  
+    ### Create Required installation dirs.
     ${SUDO_PREFIX} mkdir -p ${INSTALL_DIR}
     ${SUDO_PREFIX} chown $(id -un):$(id -gn) "$INSTALL_DIR"
     # Get absolute dir
     INSTALL_DIR="$( cd ${INSTALL_DIR} && pwd )"
 
-    
+
     # Create directories if needed
     $SUDO_PREFIX mkdir -p $SYS_INSTALL_DIR/include/mvnc2
     $SUDO_PREFIX mkdir -p $SYS_INSTALL_DIR/lib/mvnc
@@ -213,9 +213,9 @@ function download_and_copy_files()
     # save current dir
     FROM_DIR=$PWD
 
-    # untar in INSTALL_DIR 
+    # untar in INSTALL_DIR
     cd ${INSTALL_DIR}
-    if [ "${VERBOSE}" = "yes" ] ; then  
+    if [ "${VERBOSE}" = "yes" ] ; then
         TAR_OPTIONS="--no-same-owner -vzxf"
     else
         TAR_OPTIONS="--no-same-owner -zxf"
@@ -226,16 +226,16 @@ function download_and_copy_files()
     cd ${INSTALL_DIR}/NCSDK
 
     ${SUDO_PREFIX} cp ${FROM_DIR}/version.txt ${INSTALL_DIR}
-    ${SUDO_PREFIX} cp ${FROM_DIR}/ncsdk.conf ${INSTALL_DIR}/NCSDK 
-    ${SUDO_PREFIX} cp ${FROM_DIR}/uninstall.sh ${INSTALL_DIR}/NCSDK 
-    ${SUDO_PREFIX} cp ${FROM_DIR}/requirements.txt ${INSTALL_DIR}/NCSDK 
-    ${SUDO_PREFIX} cp ${FROM_DIR}/requirements_apt.txt ${INSTALL_DIR}/NCSDK 
+    ${SUDO_PREFIX} cp ${FROM_DIR}/ncsdk.conf ${INSTALL_DIR}/NCSDK
+    ${SUDO_PREFIX} cp ${FROM_DIR}/uninstall.sh ${INSTALL_DIR}/NCSDK
+    ${SUDO_PREFIX} cp ${FROM_DIR}/requirements.txt ${INSTALL_DIR}/NCSDK
+    ${SUDO_PREFIX} cp ${FROM_DIR}/requirements_apt.txt ${INSTALL_DIR}/NCSDK
     ${SUDO_PREFIX} cp ${FROM_DIR}/requirements_dnf.txt ${INSTALL_DIR}/NCSDK #CHANGED
-    ${SUDO_PREFIX} cp ${FROM_DIR}/requirements_apt_raspbian.txt ${INSTALL_DIR}/NCSDK 
+    ${SUDO_PREFIX} cp ${FROM_DIR}/requirements_apt_raspbian.txt ${INSTALL_DIR}/NCSDK
 }
 
 
-# compare_versions - sets global VERCOMP_RETVAL 
+# compare_versions - sets global VERCOMP_RETVAL
 function compare_versions()
 {
     VERCOMP_RETVAL=-1
@@ -258,7 +258,7 @@ function print_previous_ncsdk_install_info()
 
         # compare_versions sets VERCOMP_RETVAL to 0, 1 or 2
         compare_versions ${PREV_NCSDK_VER} ${NCSDK_VERSION}
-        
+
         if [ ${VERCOMP_RETVAL} -eq 0 ]; then
             echo "Previously installed version is the same as installer version, overwriting..."
         elif [ ${VERCOMP_RETVAL} -eq 1 ]; then
@@ -270,7 +270,7 @@ function print_previous_ncsdk_install_info()
 }
 
 
-# install_apt_dependencies - installs dependencies using apt 
+# install_apt_dependencies - installs dependencies using apt
 function install_apt_dependencies()
 {
     exec_and_search_errors "$SUDO_PREFIX apt-get $APT_QUIET update"
@@ -283,7 +283,7 @@ function install_apt_dependencies()
     if [ $RC -ne 0 ] ; then
         echo -e "${RED} pip2 command not found.  Will exit${NC}"
         exit 1
-    fi    
+    fi
     RC=0
     command -v pip3 > /dev/null || RC=$?
     if [ $RC -ne 0 ] ; then
@@ -294,7 +294,7 @@ function install_apt_dependencies()
     $SUDO_PREFIX ldconfig
 }
 
-# install_dnf_dependencies - installs dependencies using dnf    
+# install_dnf_dependencies - installs dependencies using dnf
 function install_dnf_dependencies()
 {
     exec_and_search_errors "$SUDO_PREFIX dnf $DNF_QUIET -y update"
@@ -307,7 +307,7 @@ function install_dnf_dependencies()
     if [ $RC -ne 0 ] ; then
         echo -e "${RED} pip2 command not found.  Will exit${NC}"
         exit 1
-    fi    
+    fi
     RC=0
     command -v pip3 > /dev/null || RC=$?
     if [ $RC -ne 0 ] ; then
@@ -318,7 +318,7 @@ function install_dnf_dependencies()
     $SUDO_PREFIX ldconfig
 }
 
-# setup_virtualenv - Use python virtualenv 
+# setup_virtualenv - Use python virtualenv
 function setup_virtualenv()
 {
     echo ""
@@ -326,12 +326,12 @@ function setup_virtualenv()
     [ "${VERBOSE}" = "yes" ] && echo "Installing prerequisites for virtualenv"
     ${SUDO_PREFIX} apt-get $APT_QUIET install python-virtualenv -y
     echo ""
-    
+
     VIRTUALENV_DIR=${INSTALL_DIR}/virtualenv-python
     # if virtualenv dir exists, try to activate it
     if [ -d ${VIRTUALENV_DIR} ] ; then
         RC=0
-        # disable trapping for unset variables due to activate script 
+        # disable trapping for unset variables due to activate script
         set +u
         source ${VIRTUALENV_DIR}/bin/activate || RC=$?
         set -u
@@ -351,9 +351,9 @@ function setup_virtualenv()
         ${SUDO_PREFIX} virtualenv --system-site-packages -p python3 ${VIRTUALENV_DIR}
         # disable trapping for unset variables due to activate script
         set +u
-        RC=0        
+        RC=0
         source ${VIRTUALENV_DIR}/bin/activate || RC=$?
-        set -u        
+        set -u
         if [ ${RC} -ne 0 ] ; then
             echo "source ${VIRTUALENV_DIR}/bin/activate gave an error=${RC}"
             echo "This is unexpected and needs to be investigated."
@@ -372,20 +372,20 @@ function setup_virtualenv()
 }
 
 
-# install_python_dependencies - install dependencies using pip2/pip3 
+# install_python_dependencies - install dependencies using pip2/pip3
 function install_python_dependencies()
 {
     # Note: If sudo is used and PIP_SYSTEM_INSTALL=yes (set in ncsdk.conf), pip packages
     #       will be installed in the systems directory, otherwise installed per user
     echo "Installing python dependencies"
 
-    if [ "${OS_DISTRO,,}" = "ubuntu" ] ; then
+    if [ "${OS_DISTRO,,}" = "ubuntu" ] || [ "${OS_DISTRO,,}" = "fedora" ]; then
         exec_and_search_errors "$PIP_PREFIX pip3 install $PIP_QUIET --trusted-host files.pythonhosted.org -r $DIR/requirements.txt"
         # Install packages for python 2.x, required for NCSDK python API
         exec_and_search_errors "$PIP_PREFIX pip2 install $PIP_QUIET --trusted-host files.pythonhosted.org Enum34>=1.1.6"
         exec_and_search_errors "$PIP_PREFIX pip2 install $PIP_QUIET --trusted-host files.pythonhosted.org --upgrade numpy>=1.13.0,<=1.13.3"
 
-        # verify python3 import scipy._lib.decorator working, a potential problem on Ubuntu only.  First check python3 import scipy.  
+        # verify python3 import scipy._lib.decorator working, a potential problem on Ubuntu only.  First check python3 import scipy.
         RC=0
         python3 -c "import scipy" >& /dev/null || RC=$?
         if [ ${RC} -ne 0 ] ; then
@@ -396,7 +396,7 @@ function install_python_dependencies()
         python3 -c "import scipy._lib.decorator" >& /dev/null || RC=$?
         if [ ${RC} -ne 0 ] ; then
             echo -e "${YELLOW}Problem importing scipy._lib.decorator into python3.  Attempting to fix${NC}"
-            # Get the location of scipy to get the location of decorator.py 
+            # Get the location of scipy to get the location of decorator.py
             RC=0
             SCIPY_FILE=$(python3 -c "import scipy; print(scipy.__file__)") || RC=$?
             if [ ${RC} -eq 0 ] ; then
@@ -414,9 +414,9 @@ function install_python_dependencies()
             else
                 echo -e "${RED}Error in python3 importing scipy / printing scipy.__file__.  Error on line $LINENO.  Will exit${NC}"
                 exit 1
-            fi  
+            fi
         fi
-        
+
     elif [ "${OS_DISTRO,,}" = "raspbian" ] ; then
         # for Raspian, use apt with python3-* if available
         exec_and_search_errors "$SUDO_PREFIX apt-get $APT_QUIET install -y $(cat "$DIR/requirements_apt_raspbian.txt")"
@@ -470,7 +470,7 @@ function install_tensorflow()
 
         echo "Checking if tensorflow is installed..."
         # find_tensorflow sets FIND_TENSORFLOW__FOUND_SUPPORTED_VERSION to 0, 1 or 2 depending if correct version installed, incorrect version installed or not installed, respectively
-        find_tensorflow "tensorflow" 
+        find_tensorflow "tensorflow"
         tf=${FIND_TENSORFLOW__FOUND_SUPPORTED_VERSION}
         INSTALL_TF="no"
         [ $tf -eq 0 ] && echo "Installed TensorFlow is the correct version, not re-installing"
@@ -492,18 +492,18 @@ function install_tensorflow()
             echo "Installing TensorFlow"
             exec_and_search_errors "$PIP_PREFIX pip3 install --quiet ${WHEEL}"
             echo "Finished installing TensorFlow"
-        fi              
-        
-    elif [ "${OS_DISTRO,,}" = "ubuntu" ] || [ "${OS_DISTRO,,}" = "fedora" ] || [ "${OS_DISTRO,,}" = "Fedora" ]; then
+        fi
+
+    elif [ "${OS_DISTRO,,}" = "ubuntu" ] || [ "${OS_DISTRO,,}" = "fedora" ]; then
         echo "Checking whether tensorflow CPU version is installed..."
         # find_tensorflow sets FIND_TENSORFLOW__FOUND_SUPPORTED_VERSION to 0, 1 or 2 depending if correct version installed, incorrect version installed or not installed, respectively
-        find_tensorflow "tensorflow" 
+        find_tensorflow "tensorflow"
         tf=${FIND_TENSORFLOW__FOUND_SUPPORTED_VERSION}
         if [ $tf -ne 0 ]; then
             echo "Checking whether tensorflow GPU version is installed..."
-            find_tensorflow tensorflow-gpu 
+            find_tensorflow tensorflow-gpu
             tf_gpu=${FIND_TENSORFLOW__FOUND_SUPPORTED_VERSION}
-        fi      
+        fi
         if [[ $tf -ne 0 && $tf_gpu -ne 0 ]]; then
             echo "Couldn't find a supported tensorflow version, installing tensorflow $SUPPORTED_TENSORFLOW_VERSION"
             exec_and_search_errors "$PIP_PREFIX pip3 install $PIP_QUIET --trusted-host files.pythonhosted.org tensorflow==$SUPPORTED_TENSORFLOW_VERSION"
@@ -607,7 +607,11 @@ function install_caffe()
     CAFFE_VER="1.0"
     CAFFE_DIR=bvlc-caffe
     CAFFE_BRANCH=master
-    if [ "${CAFFE_FLAVOR}" = "intel" ] && [ "${OS_DISTRO,,}" = "ubuntu" ]; then
+    echo "HERE"
+    echo ${CAFFE_FLAVOR}
+    echo ${OS_DISTRO,,}
+    if [ "${CAFFE_FLAVOR}" = "intel" ] && { [ "${OS_DISTRO,,}" = "ubuntu" ] || [ "${OS_DISTRO,,}" = "fedora" ]; }; then
+        echo "TEST: HERE"
         CAFFE_SRC="https://github.com/intel/caffe.git"
         CAFFE_VER="1.0.3"
         CAFFE_DIR=intel-caffe
@@ -624,7 +628,7 @@ function install_caffe()
     if [ $RC -eq 1 ]; then
         echo "Caffe not found, installing caffe..."
     else
-        if [ "${CAFFE_FLAVOR}" = "intel" ] && [ "${OS_DISTRO,,}" = "ubuntu" ]; then
+        if [ "${CAFFE_FLAVOR}" = "intel" ] && { [ "${OS_DISTRO,,}" = "ubuntu" ][ "${OS_DISTRO,,}" = "fedora"]; } ; then
             # find_and_try_adjusting_caffe_symlinks sets FIND_AND_TRY_ADJUSTING_CAFFE_SYMLINKS_FOUND to 0 or 1
             find_and_try_adjusting_caffe_symlinks
             RC=$FIND_AND_TRY_ADJUSTING_CAFFE_SYMLINKS_FOUND
@@ -705,7 +709,7 @@ function install_caffe()
     # If you get an error compiling caffe, one possible potential issue is if you
     # previously compiled an older version of opencv from sources and it is installed into /usr/local.
     # In that case the compiler will pick up the older version from /usr/local, not the version
-    # this installer installed.  Please provide feedback in our support forum if you encountered difficulties. 
+    # this installer installed.  Please provide feedback in our support forum if you encountered difficulties.
     echo "Compiling Caffe..."
     mkdir -p build
     cd build
@@ -715,7 +719,7 @@ function install_caffe()
     echo "Installing caffe..."
     eval make install $STDOUT_QUIET
     # You can use 'make runtest' to test this stage manually :)
-    
+
     # Add PYTHONPATH if not already there
     printf "Removing previous references to previous caffe installation..."
     # Remove older references
@@ -729,7 +733,7 @@ function install_caffe()
 # install_sdk - installs SDK to $SYS_INSTALL_DIR/bin
 function install_sdk()
 {
-    # copy toolkit 
+    # copy toolkit
     $SUDO_PREFIX cp -r $SDK_DIR/tk $SYS_INSTALL_DIR/bin/ncsdk
 
     check_and_remove_file $SYS_INSTALL_DIR/bin/mvNCCompile
@@ -742,7 +746,7 @@ function install_sdk()
 }
 
 
-# install_api - installs firmware & API 
+# install_api - installs firmware & API
 function install_api()
 {
     # Copy firmware(FW) to destination
@@ -761,10 +765,10 @@ function install_api()
     check_and_remove_file $SYS_INSTALL_DIR/include/mvnc.h
     check_and_remove_file $SYS_INSTALL_DIR/include/ncHighClass.h
     $SUDO_PREFIX ln -s $SYS_INSTALL_DIR/include/mvnc2/mvnc.h $SYS_INSTALL_DIR/include/mvnc.h
-    
+
     check_and_remove_file $SYS_INSTALL_DIR/lib/libmvnc.so.0
     check_and_remove_file $SYS_INSTALL_DIR/lib/libmvnc.so
-    check_and_remove_file $SYS_INSTALL_DIR/lib/libmvnc_highclass.so 
+    check_and_remove_file $SYS_INSTALL_DIR/lib/libmvnc_highclass.so
     $SUDO_PREFIX ln -s $SYS_INSTALL_DIR/lib/mvnc/libmvnc.so.0 $SYS_INSTALL_DIR/lib/libmvnc.so.0
     $SUDO_PREFIX ln -s $SYS_INSTALL_DIR/lib/mvnc/libmvnc.so.0 $SYS_INSTALL_DIR/lib/libmvnc.so
     if [ -f $SYS_INSTALL_DIR/lib/mvnc/libmvnc_highclass.so.0 ] ; then
@@ -772,7 +776,7 @@ function install_api()
         $SUDO_PREFIX ln -s $SYS_INSTALL_DIR/lib/mvnc/libmvnc_highclass.so.0 $SYS_INSTALL_DIR/lib/libmvnc_highclass.so
     fi
 
-    if [ "${OS_DISTRO,,}" = "fedora" ] || [ "${OS_DISTRO,,}" = "Fedora" ]; then
+    if [ "${OS_DISTRO,,}" = "fedora" ]; then
         $SUDO_PREFIX touch /etc/ld.so.conf.d/ncsdk-x86_64.conf
         $SUDO_PREFIX echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf.d/ncsdk-x86_64.conf
     fi
@@ -809,19 +813,19 @@ function finalize_installer()
     # Update udev rules
     echo "Updating udev rules..."
     $SUDO_PREFIX cp $SDK_DIR/udev/97-usbboot.rules /etc/udev/rules.d/
-    RC=0 
+    RC=0
     $SUDO_PREFIX udevadm control --reload-rules || RC=$?
     if [ $RC -ne 0 ] ; then
         echo "Warning udevadm control --reload-rules reported an return code = ${RC}"
     fi
-    RC=0 
+    RC=0
     $SUDO_PREFIX udevadm trigger || RC=$?
     if [ $RC -ne 0 ] ; then
         echo "Warning udevadm trigger return code = ${RC}"
     fi
-    
+
     # Final touch up
-    CURRENT_USER=$(id -u -n)    
+    CURRENT_USER=$(id -u -n)
     echo "Adding user '$CURRENT_USER' to 'users' group"
     $SUDO_PREFIX usermod -a -G users ${CURRENT_USER}
 
@@ -852,8 +856,8 @@ function finalize_installer()
         echo " You need to either"
         echo "  - Manually update projects to use NCAPI v2."
         echo "  - Manually configure your projects to use the old NCAPI v1 files which were "
-        echo "    moved to ${NCSDK1_ARCHIVE_DIR}" 
-        echo ""        
+        echo "    moved to ${NCSDK1_ARCHIVE_DIR}"
+        echo ""
     fi
 
     if [ "${INSTALL_CAFFE}" = "yes" ] ; then
@@ -886,18 +890,18 @@ function main()
 
     # If previous install was from NCSDK 1.x release, move them
     detect_and_move_ncsdk1
-    
+
     # Find old installs, if found, print old version and remove it
     # find_previous_install and remove_previous_install are in install-utilities.sh
     find_previous_install
     print_previous_ncsdk_install_info
     remove_previous_install
-    
+
     ### installation phase
     make_installer_dirs
     download_and_copy_files
 
-    if [ "${OS_DISTRO,,}" = "fedora" ] || [ "${OS_DISTRO,,}" = "Fedora" ]; then
+    if [ "${OS_DISTRO,,}" = "fedora" ]; then
         install_dnf_dependencies
     else
         install_apt_dependencies
